@@ -10,12 +10,37 @@ def get_all_users():
     users_list = list(map(lambda user: user.serialize(), users))
     return jsonify(users_list), 200
 
+@api.route('/user', methods=['POST'])
+def create_user():
+    rb = request.get_json()
+    new_user = User(
+        email=rb["email"], 
+        password=rb["password"],
+        is_active=True
+        )
+    db.session.add(new_user)
+    db.session.commit()
+    return f"User was created", 200
+
 
 @api.route('/planets', methods=['GET'])
 def get_all_planets():
     planets = Planet.query.all()
     planets_list = list(map(lambda planet: planet.serialize(), planets))
     return jsonify(planets_list), 200
+
+
+@api.route('/planet', methods=['POST'])
+def create_planet():
+    rb = request.get_json()
+    new_planet = Planet(
+        planet_name=rb["planet_name"], 
+        climate=rb["climate"],
+        terrain=rb["terrain"]
+        )
+    db.session.add(new_planet)
+    db.session.commit()
+    return f"Planet was created", 200
 
 
 @api.route('/planets/<int:id>', methods=['GET'])
@@ -27,28 +52,41 @@ def get_planet(id):
 
 
 @api.route('/people', methods=['GET'])
-def get_planet(id):
+def get_people():
     people = Person.query.all()
     people_list = list(map(lambda person: person.serialize(), people))
     return jsonify(people_list), 200
 
 
+@api.route('/person', methods=['POST'])
+def create_person():
+    rb = request.get_json()
+    new_person = Person(
+        character_name=rb["character_name"], 
+        height=rb["height"],
+        haircolor=rb["haircolor"]
+        )
+    db.session.add(new_person)
+    db.session.commit()
+    return f"Person was created", 200
+
+
 @api.route('/people/<int:id>', methods=['GET'])
-def get_planet(id):
+def get_person(id):
     person = Person.query.get(id)
     if person is None:
         raise APIException("Person not found", 404)
     return jsonify(person.serialize()), 200
 
 
-@api.route('/users/favorites', methods=['GET'])
+@api.route('/users/favorites/<int:user_id>', methods=['GET'])
 def get_user_favorites(user_id):
-    favorites = Favorite.query.all(user_id)
+    favorites = Favorite.query.filter_by(user_id=user_id).all()
     favorites_list = list(map(lambda favorite: favorite.serialize(), favorites))
     return jsonify(favorites_list), 200
 
 
-@api.route('/favorite/people/<int:id>', methods=['POST'])
+@api.route('/favorite/people/<int:person_id>', methods=['POST'])
 def create_character_favorite(person_id):
     rb = request.get_json()
     new_favorite = Favorite(
@@ -60,8 +98,8 @@ def create_character_favorite(person_id):
     return f"Favorite person was created", 200
 
 
-@api.route('/favorite/planet/<int:id>', methods=['POST'])
-def create_character_favorite(planet_id):
+@api.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def create_planet_favorite(planet_id):
     rb = request.get_json()
     new_favorite = Favorite(
         planet_id=planet_id, 
